@@ -382,7 +382,7 @@
     .modal-layer.is-open .modal { transform: translateY(0) scale(1); }
 
     .panel {
-      padding: 20px 30px 16px;
+      padding: 14px 30px 10px;
     }
 
     .panel[hidden] { display: none; }
@@ -390,8 +390,8 @@
     .close-button {
       position: absolute;
       z-index: 2;
-      top: 18px;
-      right: 18px;
+      top: 12px;
+      right: 14px;
       display: grid;
       width: 44px;
       height: 44px;
@@ -441,7 +441,7 @@
 
     .modal-title {
       max-width: none;
-      margin: 10px 0 6px;
+      margin: 6px 0 4px;
       font-size: clamp(28px, 3.6vw, 32px);
       line-height: 1.06;
       letter-spacing: -.04em;
@@ -459,14 +459,51 @@
 
     .comparison {
       display: grid;
-      grid-template-columns: 1fr 1px 1fr;
-      gap: 20px;
-      margin-top: 10px;
-      padding-block: 10px;
+      grid-template-columns: 1fr 28px 1fr;
+      gap: 16px;
+      --arrow-top: 128px;
+      margin-top: 6px;
+      padding-block: 8px;
       border-block: 1px solid var(--line);
     }
 
-    .comparison-divider { background: var(--line); }
+    .comparison-divider {
+      position: relative;
+      background: transparent;
+    }
+
+    /* a linha continua existindo, agora desenhada no meio da coluna */
+    .comparison-divider::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 1px;
+      background: var(--line);
+      transform: translateX(-50%);
+    }
+
+    /* --arrow-top = altura do rótulo + metade do palco, para cair no centro das imagens */
+    .flow-arrow {
+      position: absolute;
+      z-index: 1;
+      top: var(--arrow-top);
+      left: 50%;
+      display: grid;
+      width: max-content;
+      place-items: center;
+      /* faixa na cor do modal: interrompe a linha divisória por trás da seta */
+      padding: 10px 0;
+      color: var(--ink);
+      background: #fffef7;
+      transform: translate(-50%, -50%);
+    }
+
+    .flow-arrow svg {
+      width: 32px;
+      height: 32px;
+    }
 
     .format {
       display: flex;
@@ -476,23 +513,12 @@
       text-align: center;
     }
 
-    .format-label {
-      align-self: center;
-      min-height: 24px;
-      margin: 0 0 3px;
-      color: var(--blue);
-      font-size: 12px;
-      font-weight: 900;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-    }
-
     .pack-stage {
       display: grid;
       width: 100%;
-      min-height: 170px;
+      min-height: 206px;
       place-items: center;
-      padding: 6px;
+      padding: 2px;
       border-radius: 8px;
       background: rgb(232 243 251 / 62%);
     }
@@ -504,19 +530,32 @@
     }
 
     .original-pack {
-      width: min(90%, 166px);
-      max-height: 160px;
+      width: min(100%, 200px);
+      max-height: 200px;
     }
 
     .mini-grid {
       display: grid;
-      grid-template-columns: repeat(3, 47px);
-      gap: 4px;
+      width: min(100%, 202px);
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
     }
 
     .mini-pack {
-      width: 47px;
-      height: 47px;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1.036;
+    }
+
+    .format-label {
+      align-self: center;
+      min-height: 0;
+      margin: 0 0 2px;
+      color: var(--blue);
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: .06em;
+      text-transform: uppercase;
     }
 
     .pack-count {
@@ -593,13 +632,34 @@
       transform: translateY(3px) rotate(225deg);
     }
 
+    /* 0fr -> 1fr anima até a altura natural do conteúdo, sem max-height chutado */
     .incident-details {
+      display: grid;
+      grid-template-rows: 0fr;
       margin-top: 6px;
-      padding: 14px 0 2px;
-      border-top: 1px solid var(--line);
+      border-top: 1px solid transparent;
+      opacity: 0;
+      transition:
+        grid-template-rows 320ms cubic-bezier(.4, 0, .2, 1),
+        opacity 200ms ease,
+        border-color 200ms ease;
     }
 
-    .incident-details[hidden] { display: none; }
+    .incident-details.is-open {
+      grid-template-rows: 1fr;
+      border-top-color: var(--line);
+      opacity: 1;
+    }
+
+    /* min-height: 0 é o que permite o item de grid encolher de verdade */
+    .incident-inner {
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* o respiro vai nas margens dos filhos: padding aqui não colapsaria junto */
+    .incident-inner > :first-child { margin-top: 14px; }
+    .incident-inner > :last-child { margin-bottom: 2px; }
 
     .incident-details h3 {
       margin: 0 0 6px;
@@ -610,17 +670,60 @@
       margin: 0;
       color: var(--muted);
       font-size: 13px;
+      text-align: justify;
+      -webkit-hyphens: auto;
+      hyphens: auto;
+    }
+
+    .incident-details p + p { margin-top: 8px; }
+
+    .incident-details strong {
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    /* a chamada do vídeo não é texto corrido: alinhada à esquerda, sem hífen */
+    .incident-details .video-note {
+      text-align: left;
+      hyphens: manual;
+      margin-top: 6px;
+    }
+
+    .incident-details .video-note a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .incident-details a {
+      color: var(--blue);
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 3px;
     }
 
     .modal-actions {
       display: grid;
-      margin-top: 6px;
+      margin-top: 2px;
       justify-items: stretch;
     }
 
-    .modal-actions .text-action { justify-self: center; margin-top: 2px; }
+    #waitForm .modal-actions { margin-top: 20px; }
 
-    #waitForOriginal { font-size: 12px; }
+    .modal-actions .text-action {
+      justify-self: center;
+      min-height: 32px;
+      margin-top: 0;
+      padding: 0;
+    }
+
+    #waitForOriginal {
+      color: #000;
+      font-size: 12px;
+    }
 
     .modal-actions .primary-action {
       width: 100%;
@@ -679,12 +782,6 @@
     .form-field input::placeholder { color: #8c96a3; }
 
     .form-field input:focus { border-color: var(--focus); }
-
-    .privacy-copy {
-      margin: 14px 0 0;
-      color: var(--muted);
-      font-size: 12px;
-    }
 
     .success-panel {
       min-height: 390px;
@@ -763,29 +860,32 @@
       .selector h1 { max-width: none; font-size: 42px; }
       .lede { margin-block: 14px 24px; font-size: 16px; }
       .product-facts { margin-top: -10px; }
-      .panel { padding: 18px 20px 14px; }
+      .panel { padding: 12px 20px 8px; }
       .modal { max-height: calc(100dvh - 24px); border-radius: 12px; }
       .modal-layer { padding: 12px; }
       .close-button { top: 10px; right: 10px; }
       .modal-title {
         max-width: none;
-        margin-top: 10px;
+        margin-top: 6px;
         padding-right: 20px;
-        font-size: 28px;
+        /* acompanha a largura útil do modal para manter o título em 2 linhas:
+           ~20px a 375px, ~16px a 320px */
+        font-size: clamp(15px, calc(7.27vw - 7.27px), 20px);
         line-height: 1.12;
       }
       .modal-intro { font-size: 15px; }
-      .comparison { gap: 8px; margin-top: 10px; padding-block: 10px; }
-      .format-label { min-height: 28px; font-size: 9px; }
-      .pack-stage { min-height: 148px; padding: 4px; }
-      .original-pack { width: min(90%, 140px); max-height: 138px; }
-      .mini-grid { grid-template-columns: repeat(3, 42px); gap: 3px; }
-      .mini-pack { width: 42px; height: 42px; }
+      .comparison { gap: 4px; margin-top: 6px; padding-block: 8px; --arrow-top: 103px; }
+      .flow-arrow { padding: 8px 0; }
+      .flow-arrow svg { width: 26px; height: 26px; }
+      .format-label { min-height: 0; font-size: 13px; }
+      .pack-stage { min-height: 164px; padding: 2px; }
+      .original-pack { width: min(100%, 150px); max-height: 160px; }
+      .mini-grid { width: min(100%, 147px); gap: 3px; }
       .pack-count span { font-size: 10px; }
       .pack-count strong { font-size: 18px; }
       .reassurance { margin-top: 10px; font-size: 15px; }
-      .modal-actions { margin-top: 6px; }
-      .modal-actions .text-action { margin-top: 2px; }
+      .modal-actions { margin-top: 2px; }
+      .modal-actions .text-action { margin-top: 0; }
       .info-note { align-items: flex-start; }
       .text-action { text-align: center; }
     }
@@ -833,7 +933,7 @@
         <div class="field-group quantity-row">
           <div class="quantity-copy">
             <span class="field-label">Quantidade de pouches</span>
-            <small>25 sachês por pouch no formato original</small>
+            <small>25 sachês por pouch na embalagem original</small>
           </div>
           <div class="stepper" aria-label="Quantidade de pouches">
             <button type="button" id="decrease" aria-label="Diminuir quantidade">−</button>
@@ -854,22 +954,29 @@
 
       <section class="panel" id="noticePanel">
         <div class="status"><span class="status-icon" aria-hidden="true">!</span><span class="status-label">Atenção</span></div>
-        <h2 class="modal-title" id="dialogTitle" tabindex="-1">Precisamos ajustar a embalagem do seu pedido</h2>
-        <p class="modal-intro">Temporariamente, sua seleção será enviada em um novo formato.</p>
+        <h2 class="modal-title" id="dialogTitle" tabindex="-1">Sua DOT vai chegar em uma embalagem diferente</h2>
+        <p class="modal-intro">Por um imprevisto, em vez da embalagem original, você receberá seu produto em uma embalagem temporária.</p>
 
         <div class="comparison" aria-label="Comparação entre a embalagem original e a temporária">
           <article class="format">
-            <p class="format-label">Formato original</p>
+            <p class="format-label">Original</p>
             <div class="pack-stage" aria-hidden="true">
               <img class="pack-image original-pack" src="assets-dot/pouch-menta-25.png" alt="">
             </div>
-            <p class="pack-count"><span id="originalPouches">1 pouch</span><strong id="originalSachets">25 sachês</strong></p>
+            <p class="pack-count"><span id="originalPouches">1x pouch</span><strong id="originalSachets">25 sachês</strong></p>
           </article>
 
-          <div class="comparison-divider" aria-hidden="true"></div>
+          <div class="comparison-divider" aria-hidden="true">
+            <span class="flow-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12h15"/>
+                <path d="M12 5l7 7-7 7"/>
+              </svg>
+            </span>
+          </div>
 
           <article class="format">
-            <p class="format-label">Formato temporário</p>
+            <p class="format-label">Temporário</p>
             <div class="pack-stage" aria-hidden="true">
               <div class="mini-grid">
                 <img class="pack-image mini-pack" src="assets-dot/mini-pouch-menta.png" alt="">
@@ -883,31 +990,35 @@
                 <img class="pack-image mini-pack" src="assets-dot/mini-pouch-menta.png" alt="">
               </div>
             </div>
-            <p class="pack-count"><span id="temporaryPouches">9 mini pouches</span><strong id="temporarySachets">27 sachês</strong></p>
+            <p class="pack-count"><span id="temporaryPouches">9x mini pouches</span><strong id="temporarySachets">27 sachês</strong></p>
           </article>
         </div>
 
-        <p class="reassurance">Mesmo produto. Mesmo sabor. Só muda a embalagem.</p>
+        <p class="reassurance">Mesmo produto. Mesmo preço. Você ganha <span id="bonusSachets">2</span> sachês.</p>
 
         <button class="details-toggle" type="button" id="detailsToggle" aria-expanded="false" aria-controls="incidentDetails">
           <span id="detailsLabel">Saiba mais sobre o que aconteceu</span><span class="chevron" aria-hidden="true"></span>
         </button>
 
-        <div class="incident-details" id="incidentDetails" hidden>
+        <div class="incident-details" id="incidentDetails" inert>
+          <div class="incident-inner">
           <h3>O que aconteceu?</h3>
-          <p>A fábrica responsável pelas nossas embalagens sofreu um incêndio, interrompendo o fornecimento do pouch original. Para não interromper os envios, usaremos temporariamente os mini pouches até a produção voltar ao normal.</p>
+          <p>A fábrica responsável pelas nossas embalagens sofreu um incêndio, interrompendo o fornecimento da embalagem original. Para não interromper os envios, usaremos temporariamente as embalagens de mini pouch até a produção voltar ao normal.</p>
+          <p>Na conta: cada pouch original traz <strong>25 sachês</strong> em uma embalagem só. Na temporária, são <strong>9 mini pouches com 3 sachês cada</strong>, o que dá <strong>27 sachês</strong> — ou seja, os mesmos 25 sachês mais 2.</p>
+          <p class="video-note"><a href="https://www.instagram.com/dot.energy" target="_blank" rel="noopener noreferrer">Vídeo explicativo</a></p>
+          </div>
         </div>
 
         <div class="modal-actions">
-          <button class="primary-action" type="button" id="continueOrder">Continuar</button>
+          <button class="primary-action" type="button" id="continueOrder">Finalizar compra</button>
           <button class="text-action" type="button" id="waitForOriginal">Quero esperar pela embalagem original</button>
         </div>
       </section>
 
       <section class="panel" id="waitPanel" hidden>
-        <div class="status"><span class="status-icon" aria-hidden="true">⌛</span><span class="status-label">Embalagem original</span></div>
-        <h2 class="modal-title wait-title" id="waitTitle" tabindex="-1">Prefere esperar pelo pouch original?</h2>
-        <p class="modal-intro">Sem problema. O produto é exatamente o mesmo — apenas a embalagem muda. Se preferir aguardar, preencha seus dados e avisaremos quando o pouch original estiver disponível novamente.</p>
+        <div class="status"><span class="status-label">Embalagem original</span></div>
+        <h2 class="modal-title wait-title" id="waitTitle" tabindex="-1">Prefere esperar pela embalagem original?</h2>
+        <p class="modal-intro">Sem problema. O produto é exatamente o mesmo — apenas a embalagem muda. Se preferir aguardar, preencha seus dados e avisaremos quando a embalagem original estiver disponível novamente.</p>
 
         <div class="info-note">
           <span class="info-icon" aria-hidden="true">i</span>
@@ -927,7 +1038,6 @@
             <label for="phone">Telefone</label>
             <input id="phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="(00) 00000-0000" minlength="14" required>
           </div>
-          <p class="privacy-copy">Usaremos seus dados somente para avisar sobre a disponibilidade da embalagem original.</p>
           <div class="modal-actions">
             <button class="primary-action" type="submit">Quero ser avisado</button>
             <button class="text-action" type="button" id="backToNotice">Voltar e continuar com a embalagem temporária</button>
@@ -939,7 +1049,7 @@
         <div class="success-content">
           <div class="success-icon" aria-hidden="true">✓</div>
           <h2 class="modal-title" id="successTitle" tabindex="-1">Cadastro recebido</h2>
-          <p class="modal-intro">Avisaremos quando o pouch original estiver disponível novamente. Sua seleção não foi adicionada ao carrinho.</p>
+          <p class="modal-intro">Avisaremos quando a embalagem original estiver disponível novamente. Sua seleção não foi adicionada ao carrinho.</p>
           <button class="primary-action" type="button" id="finishFlow">Voltar à loja</button>
         </div>
       </section>
@@ -977,7 +1087,7 @@
       let toastTimer = null;
 
       function pluralPouch(value) {
-        return value === 1 ? '1 pouch' : `${value} pouches`;
+        return value === 1 ? '1x pouch' : `${value}x pouches`;
       }
 
       function updateQuantity(next) {
@@ -991,8 +1101,9 @@
       function updateModalData() {
         document.getElementById('originalPouches').textContent = pluralPouch(quantity);
         document.getElementById('originalSachets').textContent = `${quantity * 25} sachês`;
-        document.getElementById('temporaryPouches').textContent = `${quantity * 9} mini pouches`;
+        document.getElementById('temporaryPouches').textContent = `${quantity * 9}x mini pouches`;
         document.getElementById('temporarySachets').textContent = `${quantity * 27} sachês`;
+        document.getElementById('bonusSachets').textContent = quantity * 2;
       }
 
       function showPanel(name) {
@@ -1019,7 +1130,8 @@
         modalLayer.classList.remove('is-open');
         modalLayer.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('modal-open');
-        incidentDetails.hidden = true;
+        incidentDetails.classList.remove('is-open');
+        incidentDetails.inert = true;
         detailsToggle.setAttribute('aria-expanded', 'false');
         detailsLabel.textContent = 'Saiba mais sobre o que aconteceu';
         if (lastFocused) lastFocused.focus();
@@ -1037,11 +1149,20 @@
       addToCart.addEventListener('click', openModal);
 
       detailsToggle.addEventListener('click', () => {
-        const willOpen = incidentDetails.hidden;
-        incidentDetails.hidden = !willOpen;
+        const willOpen = !incidentDetails.classList.contains('is-open');
+        incidentDetails.classList.toggle('is-open', willOpen);
+        // inert tira o link do vídeo da ordem de tabulação enquanto está recolhido
+        incidentDetails.inert = !willOpen;
         detailsToggle.setAttribute('aria-expanded', String(willOpen));
         detailsLabel.textContent = willOpen ? 'Mostrar menos' : 'Saiba mais sobre o que aconteceu';
-        if (willOpen) incidentDetails.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+
+      // só rola até o conteúdo depois que ele terminou de abrir
+      incidentDetails.addEventListener('transitionend', event => {
+        if (event.propertyName !== 'grid-template-rows') return;
+        if (incidentDetails.classList.contains('is-open')) {
+          incidentDetails.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
       });
 
       continueOrder.addEventListener('click', () => {
